@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>炫彩小球</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="my_canvas">您的浏览器不支持canvas！</canvas>
+
+    <script src="./node_modules/_zepto@1.2.0@zepto/dist/zepto.min.js"></script>
+    <script>
+        let my_canvas = document.querySelector('#my_canvas');
+        let ctx = my_canvas.getContext('2d');
+
+        // 设置 canvas 宽高为全屏显示
+        my_canvas.width = document.documentElement.clientWidth;
+        my_canvas.height = document.documentElement.clientHeight;
+
+        /* 
+         * 在屏幕上移动鼠标，出现多彩小球，每个小球的大小固定，颜色不一，沿着不同方向逐渐变小直至消失不见，且移动速度和变小速度均不同
+         *
+         */
+        class Ball {
+            constructor(x, y) {
+                this.x = x;  // 小球圆心横坐标
+                this.y = y;  // 小球圆心纵坐标
+                this.radius = Math.floor(Math.random() * 41 + 10);  // 小球半径为 10~50
+                this.color = `rgb(${parseInt(Math.random() * 256)}, ${parseInt(Math.random() * 256)}, ${parseInt(Math.random() * 256)}`;  // 小球颜色随机
+                this.dx = Math.floor(Math.random() * 7 - 3);  // 小球横坐标增量为-3~3
+                this.dy = Math.floor(Math.random() * 7 - 3);  // 小球纵坐标增量为-3~3
+                // 每实例化一个小球，就将其保存在变量 elements 中
+                elements.push(this);
+            }
+
+            // 渲染小球
+            render() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            // 小球动画参数设置
+            animate() {
+                this.x += this.dx;
+                this.y += this.dy;
+                this.radius--;
+                // 小球半径减小为 0 时，小球消失————从 elements 中删除
+                if (this.radius < 0) {
+                    elements.forEach((item, index) => {
+                        if (item === this) {
+                            elements.splice(index, 1);
+                        }
+                    });
+                }
+            }
+        }
+
+        let elements = [];  // 保存实例化的小球
+        // 移动鼠标，鼠标位置便实例化一个小球
+        my_canvas.addEventListener('touchmove', (event) => {
+            event = event || window.event;
+            event.preventDefault();
+            let touch = event.touches[0];
+            new Ball(touch.clientX, touch.clientY);
+            console.log(`${touch.clientX} === ${touch.clientY}`);
+        },false);
+
+        my_canvas.addEventListener('mousemove', (event) => {
+            event = event || window.event;
+            event.preventDefault();
+            new Ball(event.clientX, event.clientY);
+            console.log(`${event.clientX} === ${event.clientY}`);
+        },false);
+
+        // 设置定时器
+        setInterval(() => {
+            // 清屏
+            ctx.clearRect(0, 0, my_canvas.width, my_canvas.height);
+            
+            elements.forEach((item) => {
+                item.render();
+                item.animate();
+            });
+        }, 1000 / 60);
+    </script>
+</body>
+</html>
